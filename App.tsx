@@ -260,7 +260,7 @@ export default function App() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.8 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 z-[150] w-12 h-12 bg-teal-500 text-slate-950 rounded-full flex items-center justify-center shadow-2xl shadow-teal-500/40 hover:bg-teal-400 hover:scale-110 active:scale-95 transition-all"
+            className="fixed bottom-[92px] right-8 z-[150] w-12 h-12 bg-teal-500 text-slate-950 rounded-full flex items-center justify-center shadow-2xl shadow-teal-500/40 hover:bg-teal-400 hover:scale-110 active:scale-95 transition-all"
             aria-label="Scroll to top"
           >
             <ArrowUp size={24} />
