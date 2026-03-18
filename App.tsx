@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import emailjs from '@emailjs/browser';
 import { 
   Github, 
   Linkedin, 
@@ -144,6 +145,10 @@ const CodeBackground = () => {
   );
 };
 
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID as string;
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID as string;
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY as string;
+
 export default function App() {
   const [activeProjectIdx, setActiveProjectIdx] = useState(0);
   const [scrolled, setScrolled] = useState(false);
@@ -182,33 +187,60 @@ export default function App() {
     setTimeout(() => setIsContactHighlight(false), 3000);
   };
 
-  const handleContactSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    const formData = new FormData(e.currentTarget);
-    const name = formData.get('name') as string;
-    const email = formData.get('email') as string;
-    const message = formData.get('message') as string;
-    const method = formData.get('method') as string;
-    
-    const text = `Hello Anup, I'm ${name} (${email}). ${message}`;
-    const encodedText = encodeURIComponent(text);
-    
-    if (method === 'whatsapp') {
-      const whatsappUrl = `https://wa.me/918999881962?text=${encodedText}`;
-      window.open(whatsappUrl, '_blank');
-    } else {
-      const mailtoUrl = `mailto:koturwaranup@gmail.com?subject=Hiring Inquiry from ${name}&body=${encodedText}`;
-      window.location.href = mailtoUrl;
-    }
-    
-    setTimeout(() => {
-      setIsSubmitting(false);
+
+    try {
+      const formEl = e.currentTarget;
+      const formData = new FormData(formEl);
+      const name = (formData.get('name') as string || '').trim();
+      const email = (formData.get('email') as string || '').trim();
+      const message = (formData.get('message') as string || '').trim();
+      const method = (formData.get('method') as string) || 'whatsapp';
+
+      if (!name || !email || !message) {
+        throw new Error('Please fill in all fields before submitting.');
+      }
+
+      const text = `Hello Anup, I'm ${name} (${email}). ${message}`;
+      const encodedText = encodeURIComponent(text);
+
+      if (method === 'whatsapp') {
+        const whatsappUrl = `https://wa.me/918999881962?text=${encodedText}`;
+        window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        const missing = [
+          !EMAILJS_SERVICE_ID && 'VITE_EMAILJS_SERVICE_ID',
+          !EMAILJS_TEMPLATE_ID && 'VITE_EMAILJS_TEMPLATE_ID',
+          !EMAILJS_PUBLIC_KEY && 'VITE_EMAILJS_PUBLIC_KEY',
+        ].filter(Boolean);
+        if (missing.length > 0) {
+          throw new Error(`EmailJS configuration is missing: ${missing.join(', ')}.`);
+        }
+
+        await emailjs.send(
+          EMAILJS_SERVICE_ID,
+          EMAILJS_TEMPLATE_ID,
+          {
+            from_name: name,
+            reply_to: email,
+            message,
+            contact_method: 'email',
+          },
+          { publicKey: EMAILJS_PUBLIC_KEY }
+        );
+      }
+
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 5000);
-      (e.target as HTMLFormElement).reset();
-    }, 500);
+      formEl.reset();
+    } catch (err) {
+      console.error('Contact form error:', err);
+      alert(`Failed to send: ${err instanceof Error ? err.message : 'Unknown error'}. Please try again or contact via WhatsApp.`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   useEffect(() => {
@@ -1006,7 +1038,7 @@ export default function App() {
                   </div>
                 </a>
 
-                <a href="https://wa.me/91+ 8999881962" target="_blank" rel="noreferrer" className="glass-card p-6 rounded-2xl flex items-center gap-5 hover:border-green-500/50 hover:bg-green-500/5 transition-all duration-300 group">
+                <a href="https://wa.me/918999881962" target="_blank" rel="noreferrer" className="glass-card p-6 rounded-2xl flex items-center gap-5 hover:border-green-500/50 hover:bg-green-500/5 transition-all duration-300 group">
                   <div className="w-14 h-14 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-400 group-hover:scale-110 transition-transform">
                     <MessageSquare size={24} />
                   </div>
